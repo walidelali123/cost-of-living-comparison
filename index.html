@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cost of living comparison</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef2f4;--ink:#14232b;--mute:#5d6f78;--card:#fff;--line:#d3dde2;--a:#0b6e6e;--b:#d9822b;}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1a20;--ink:#e6eef1;--mute:#8fa3ad;--card:#16252d;--line:#28404b;--a:#4fc3c3;--b:#f0a458;}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Instrument Sans",system-ui,sans-serif;padding:24px 16px 64px}
+main{max-width:860px;margin:0 auto}
+h1{font-size:clamp(28px,5vw,44px);line-height:1.05;margin:0 0 8px;letter-spacing:-.02em}
+h2{font-size:18px;margin:32px 0 12px}
+p.lead{color:var(--mute);margin:0 0 24px;max-width:60ch}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+label{display:flex;flex-direction:column;font-size:14px;color:var(--mute);gap:4px}
+select,button{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+button{cursor:pointer;font-weight:600}
+button:hover{border-color:var(--a)}
+:focus-visible{outline:3px solid var(--a);outline-offset:2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;overflow-x:auto}
+.totals{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.tot{padding:16px;border-radius:12px;background:var(--card);border:1px solid var(--line)}
+.tot b{display:block;font-size:clamp(24px,5vw,36px);letter-spacing:-.02em}
+.tot.a{border-top:5px solid var(--a)}.tot.b{border-top:5px solid var(--b)}
+.row{display:grid;grid-template-columns:110px 1fr;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border:0}
+.bar{display:flex;align-items:center;gap:8px;font-size:14px;margin:2px 0}
+.bar i{display:block;height:12px;border-radius:3px;min-width:2px}
+.bar.a i{background:var(--a)}.bar.b i{background:var(--b)}
+#verdict{margin-top:12px;font-weight:600}
+.note{font-size:13px;color:var(--mute);margin-top:8px}
+.saved{display:flex;gap:8px;flex-wrap:wrap}
+.chip{display:flex;border:1px solid var(--line);border-radius:999px;background:var(--card);overflow:hidden}
+.chip button{border:0;border-radius:0;padding:6px 12px}
+svg{width:100%;height:auto;display:block}
+</style>
+</head>
+<body>
+<main>
+<h1>Cost of living, side by side</h1>
+<p class="lead">Pick two cities to compare typical monthly costs for one person, then switch currency.</p>
+
+<div class="controls">
+  <label>City A <select id="cityA"></select></label>
+  <label>City B <select id="cityB"></select></label>
+  <label>Currency <select id="cur"></select></label>
+  <label>&nbsp;<button id="save">Save comparison</button></label>
+</div>
+
+<div class="totals">
+  <div class="tot a"><span id="nameA"></span><b id="totA"></b></div>
+  <div class="tot b"><span id="nameB"></span><b id="totB"></b></div>
+</div>
+<div id="verdict" role="status"></div>
+
+<h2>Monthly costs by category</h2>
+<div class="card" id="rows"></div>
+
+<h2>Exchange rate trend, last 12 months</h2>
+<div class="card"><div id="trend"></div><div class="note" id="trendNote"></div></div>
+
+<h2>Saved comparisons</h2>
+<div class="saved" id="saved"></div>
+<p class="note">City costs are illustrative sample figures in USD stored in <code>CITIES</code> below. Replace them with a real source (for example, Numbeo's paid API) through the <code>loadCityData()</code> function. Exchange rates come live from the free Frankfurter API (ECB data).</p>
+</main>
+
+<script>
+// ---- Data layer: swap this for a real cost-of-living API ----
+const CATS = [["rent","Rent"],["food","Food"],["transport","Transport"],["utilities","Utilities"],["fun","Entertainment"]];
+const CITIES = { // illustrative monthly USD, one person, 1-bed apartment in the centre
+  "Stockholm":{rent:1450,food:520,transport:85,utilities:130,fun:240},
+  "Berlin":{rent:1300,food:430,transport:90,utilities:260,fun:220},
+  "London":{rent:2700,food:560,transport:200,utilities:210,fun:300},
+  "New York":{rent:4100,food:700,transport:132,utilities:180,fun:350},
+  "Lisbon":{rent:1500,food:380,transport:50,utilities:120,fun:190},
+  "Tokyo":{rent:1250,food:450,transport:80,utilities:140,fun:210},
+  "Bangkok":{rent:600,food:260,transport:45,utilities:90,fun:130},
+  "Mexico City":{rent:900,food:300,transport:40,utilities:70,fun:140},
+  "Toronto":{rent:2300,food:520,transport:115,utilities:150,fun:260},
+  "Sydney":{rent:2600,food:600,transport:140,utilities:170,fun:280}
+};
+async function loadCityData(){ return CITIES; } // later: fetch from your API or a proxy
+
+// ---- Currency layer ----
+const API = "https://api.frankfurter.dev/v1";
+let rates = {USD:1};
+async function loadRates(){
+  try{ const r = await fetch(`${API}/latest?base=USD`); const d = await r.json(); rates = {USD:1, ...d.rates}; }
+  catch(e){ document.getElementById("trendNote").textContent = "Live rates unavailable; showing USD."; }
+}
+async function loadTrend(cur){
+  const el = document.getElementById("trend"), note = document.getElementById("trendNote");
+  if(cur==="USD"){ el.innerHTML=""; note.textContent="Costs are stored in USD. Choose another currency to see its trend against the dollar."; return; }
+  try{
+    const end = new Date(), start = new Date(); start.setFullYear(end.getFullYear()-1);
+    const f = d=>d.toISOString().slice(0,10);
+    const r = await fetch(`${API}/${f(start)}..${f(end)}?base=USD&symbols=${cur}`);
+    const d = await r.json();
+    const pts = Object.entries(d.rates).map(([k,v])=>[k,v[cur]]);
+    const vals = pts.map(p=>p[1]), min=Math.min(...vals), max=Math.max(...vals);
+    const W=700,H=220,P=30, x=i=>P+i*(W-2*P)/(pts.length-1), y=v=>H-P-(v-min)/((max-min)||1)*(H-2*P);
+    const path = pts.map((p,i)=>`${i?"L":"M"}${x(i).toFixed(1)},${y(p[1]).toFixed(1)}`).join(" ");
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="1 USD in ${cur} over 12 months">
+      <path d="${path}" fill="none" stroke="var(--a)" stroke-width="2.5"/>
+      <text x="${P}" y="16" fill="var(--mute)" font-size="12">high ${max.toFixed(2)}</text>
+      <text x="${P}" y="${H-6}" fill="var(--mute)" font-size="12">low ${min.toFixed(2)}</text></svg>`;
+    note.textContent = `1 USD in ${cur}, ${pts[0][0]} to ${pts[pts.length-1][0]}.`;
+  }catch(e){ el.innerHTML=""; note.textContent="Trend data could not be loaded."; }
+}
+
+// ---- UI ----
+const $ = id=>document.getElementById(id);
+let data = {};
+const fmt = (v,cur)=>new Intl.NumberFormat(undefined,{style:"currency",currency:cur,maximumFractionDigits:0}).format(v);
+const total = c=>CATS.reduce((s,[k])=>s+data[c][k],0);
+
+function render(){
+  const a=$("cityA").value, b=$("cityB").value, cur=$("cur").value, r=rates[cur]||1;
+  $("nameA").textContent=a; $("nameB").textContent=b;
+  const ta=total(a)*r, tb=total(b)*r;
+  $("totA").textContent=fmt(ta,cur); $("totB").textContent=fmt(tb,cur);
+  if(a===b) $("verdict").textContent="Choose two different cities to compare.";
+  else{ const cheaper = ta<tb?a:b, pct = Math.abs(ta-tb)/Math.max(ta,tb)*100;
+    $("verdict").textContent=`${cheaper} is about ${pct.toFixed(0)}% cheaper per month.`; }
+  const max = Math.max(...CATS.map(([k])=>Math.max(data[a][k],data[b][k])))*r;
+  $("rows").innerHTML = CATS.map(([k,label])=>{
+    const va=data[a][k]*r, vb=data[b][k]*r;
+    return `<div class="row"><strong>${label}</strong><div>
+      <div class="bar a"><i style="width:${va/max*70}%"></i>${fmt(va,cur)}</div>
+      <div class="bar b"><i style="width:${vb/max*70}%"></i>${fmt(vb,cur)}</div></div></div>`;}).join("");
+  renderSaved();
+}
+
+// ---- Saved comparisons: browser storage only ----
+const KEY="col-saved";
+function getSaved(){ try{ return JSON.parse(localStorage.getItem(KEY))||[]; }catch(e){ return []; } }
+function setSaved(list){ try{ localStorage.setItem(KEY,JSON.stringify(list)); }catch(e){} }
+function renderSaved(){
+  const list=getSaved();
+  $("saved").innerHTML = list.length ? list.map((s,i)=>`<div class="chip">
+    <button data-load="${i}">${s.a} vs ${s.b} (${s.cur})</button>
+    <button data-del="${i}" aria-label="Delete saved comparison">&times;</button></div>`).join("")
+    : '<span class="note">Nothing saved yet.</span>';
+}
+$("saved").addEventListener("click",e=>{
+  const list=getSaved(), l=e.target.dataset.load, d=e.target.dataset.del;
+  if(l!==undefined){ const s=list[l]; $("cityA").value=s.a; $("cityB").value=s.b; $("cur").value=s.cur; render(); loadTrend(s.cur); }
+  if(d!==undefined){ list.splice(d,1); setSaved(list); renderSaved(); }
+});
+$("save").onclick=()=>{
+  const s={a:$("cityA").value,b:$("cityB").value,cur:$("cur").value}, list=getSaved();
+  if(!list.some(x=>x.a===s.a&&x.b===s.b&&x.cur===s.cur)){ list.push(s); setSaved(list); }
+  renderSaved();
+};
+
+(async function init(){
+  data = await loadCityData();
+  await loadRates();
+  const names = Object.keys(data);
+  for(const id of ["cityA","cityB"]) $(id).innerHTML = names.map(n=>`<option>${n}</option>`).join("");
+  $("cityB").value = names[3];
+  $("cur").innerHTML = Object.keys(rates).sort().map(c=>`<option ${c==="USD"?"selected":""}>${c}</option>`).join("");
+  for(const id of ["cityA","cityB"]) $(id).onchange=render;
+  $("cur").onchange=()=>{ render(); loadTrend($("cur").value); };
+  render(); loadTrend("USD");
+})();
+</script>
+</body>
+</html>
