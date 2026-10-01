@@ -4,73 +4,380 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cost of living comparison</title>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#eef2f4;--ink:#14232b;--mute:#5d6f78;--card:#fff;--line:#d3dde2;--a:#0b6e6e;--b:#d9822b;}
-@media (prefers-color-scheme:dark){:root{--bg:#0f1a20;--ink:#e6eef1;--mute:#8fa3ad;--card:#16252d;--line:#28404b;--a:#4fc3c3;--b:#f0a458;}}
+:root{
+  --bg:#eef4f7;
+  --bg-strong:#dfeaf0;
+  --card:#ffffff;
+  --ink:#13252d;
+  --muted:#5d727c;
+  --line:#d6e0e5;
+  --a:#0e7a7a;
+  --a-soft:#dff8f8;
+  --b:#d9852d;
+  --b-soft:#fff1e3;
+  --shadow:0 18px 40px rgba(19,37,45,.08);
+  --radius:18px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0d171d;
+    --bg-strong:#111f29;
+    --card:#152933;
+    --ink:#edf4f7;
+    --muted:#9bb0ba;
+    --line:#2a3f4d;
+    --a:#68d4cf;
+    --a-soft:#163e3f;
+    --b:#f7b769;
+    --b-soft:#483518;
+    --shadow:0 18px 40px rgba(0,0,0,.28);
+  }
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Instrument Sans",system-ui,sans-serif;padding:24px 16px 64px}
-main{max-width:860px;margin:0 auto}
-h1{font-size:clamp(28px,5vw,44px);line-height:1.05;margin:0 0 8px;letter-spacing:-.02em}
-h2{font-size:18px;margin:32px 0 12px}
-p.lead{color:var(--mute);margin:0 0 24px;max-width:60ch}
-.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
-label{display:flex;flex-direction:column;font-size:14px;color:var(--mute);gap:4px}
-select,button{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
-button{cursor:pointer;font-weight:600}
-button:hover{border-color:var(--a)}
-:focus-visible{outline:3px solid var(--a);outline-offset:2px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;overflow-x:auto}
-.totals{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
-.tot{padding:16px;border-radius:12px;background:var(--card);border:1px solid var(--line)}
-.tot b{display:block;font-size:clamp(24px,5vw,36px);letter-spacing:-.02em}
-.tot.a{border-top:5px solid var(--a)}.tot.b{border-top:5px solid var(--b)}
-.row{display:grid;grid-template-columns:110px 1fr;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
-.row:last-child{border:0}
-.bar{display:flex;align-items:center;gap:8px;font-size:14px;margin:2px 0}
-.bar i{display:block;height:12px;border-radius:3px;min-width:2px}
-.bar.a i{background:var(--a)}.bar.b i{background:var(--b)}
-#verdict{margin-top:12px;font-weight:600}
-.note{font-size:13px;color:var(--mute);margin-top:8px}
-.saved{display:flex;gap:8px;flex-wrap:wrap}
-.chip{display:flex;border:1px solid var(--line);border-radius:999px;background:var(--card);overflow:hidden}
-.chip button{border:0;border-radius:0;padding:6px 12px}
-svg{width:100%;height:auto;display:block}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font:16px/1.55 "Instrument Sans",system-ui,sans-serif;
+  background:linear-gradient(180deg,var(--bg) 0%,var(--bg-strong) 100%);
+  color:var(--ink);
+}
+main{
+  max-width:980px;
+  margin:0 auto;
+  padding:32px 18px 64px;
+}
+.hero{
+  margin:0 0 18px;
+  padding:28px 22px 20px;
+  background:linear-gradient(135deg,var(--card),rgba(255,255,255,.72));
+  border:1px solid var(--line);
+  border-radius:26px;
+  box-shadow:var(--shadow);
+}
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 12px;
+  border-radius:999px;
+  background:var(--a-soft);
+  color:var(--a);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+.badge::before{
+  content:"";
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--a);
+  display:block;
+}
+h1{
+  margin:16px 0 8px;
+  font-size:clamp(2.2rem,5vw,4rem);
+  line-height:1.02;
+  letter-spacing:-.05em;
+}
+.lead{
+  margin:0;
+  color:var(--muted);
+  font-size:clamp(1rem,2vw,1.15rem);
+  max-width:55ch;
+}
+.controls{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:14px;
+  margin-top:24px;
+}
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  min-width:0;
+}
+.field label{
+  font-size:13px;
+  color:var(--muted);
+  font-weight:600;
+}
+select,button{
+  border-radius:14px;
+  border:1px solid var(--line);
+  background:var(--card);
+  color:var(--ink);
+  font:inherit;
+  min-height:48px;
+  padding:10px 14px;
+  width:100%;
+  box-shadow:0 1px 0 rgba(0,0,0,.02);
+}
+select{
+  appearance:none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% - 3px),
+    calc(100% - 12px) calc(50% - 3px);
+  background-size:6px 6px, 6px 6px;
+  background-repeat:no-repeat;
+}
+button{
+  cursor:pointer;
+  font-weight:700;
+  letter-spacing:-.02em;
+  transition:transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+button:hover{
+  transform:translateY(-1px);
+  border-color:var(--a);
+  box-shadow:0 8px 20px rgba(12,110,112,.12);
+}
+button:active{transform:translateY(0)}
+#save{
+  background:linear-gradient(135deg,var(--a),#0d9999);
+  color:white;
+  border:none;
+}
+
+.section{
+  margin-top:26px;
+  background:rgba(255,255,255,.25);
+  border:1px solid var(--line);
+  border-radius:26px;
+  padding:22px 20px;
+  box-shadow:var(--shadow);
+}
+.section h2{
+  margin:0 0 12px;
+  font-size:clamp(1.2rem,2vw,1.5rem);
+  letter-spacing:-.03em;
+}
+.summary{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+  margin-top:16px;
+}
+.tot{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:18px 18px 16px;
+  box-shadow:0 6px 16px rgba(35,72,84,.05);
+}
+.tot.a{border-top:5px solid var(--a)}
+.tot.b{border-top:5px solid var(--b)}
+.tot .label{
+  color:var(--muted);
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+.tot b{
+  display:block;
+  margin-top:8px;
+  font-size:clamp(1.8rem,4vw,2.8rem);
+  line-height:1.1;
+  letter-spacing:-.05em;
+}
+#verdict{
+  margin-top:14px;
+  padding:10px 12px;
+  border-radius:12px;
+  font-weight:700;
+  background:var(--a-soft);
+  color:var(--a);
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:12px 14px;
+  overflow:hidden;
+}
+.row{
+  display:grid;
+  grid-template-columns:120px minmax(0,1fr);
+  gap:12px;
+  align-items:center;
+  padding:14px 4px;
+  border-bottom:1px solid var(--line);
+}
+.row:last-child{border-bottom:0}
+.row strong{
+  font-size:0.96rem;
+  letter-spacing:-.02em;
+}
+.row .bars{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.bar{
+  display:grid;
+  grid-template-columns:1fr auto;
+  align-items:center;
+  gap:12px;
+  font-size:13px;
+}
+.bar span{color:var(--muted);font-weight:600}
+.bar-track{
+  position:relative;
+  width:100%;
+  height:12px;
+  border-radius:999px;
+  background:rgba(197,212,219,.45);
+  overflow:hidden;
+}
+.bar-track i{
+  display:block;
+  height:100%;
+  border-radius:inherit;
+  min-width:2px;
+}
+.bar.a i{background:linear-gradient(90deg,var(--a),#45c3be)}
+.bar.b i{background:linear-gradient(90deg,var(--b),#ffa959)}
+
+#trend{
+  min-height:120px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+#trend svg{max-width:100%}
+.note{
+  color:var(--muted);
+  font-size:13px;
+  margin-top:10px;
+}
+.saved-wrap{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:12px;
+}
+.chip{
+  display:flex;
+  align-items:center;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:999px;
+  overflow:hidden;
+  box-shadow:0 4px 12px rgba(25,48,57,.04);
+}
+.chip button{
+  min-height:unset;
+  border:0;
+  border-radius:0;
+  padding:8px 12px;
+  background:transparent;
+  box-shadow:none;
+  transform:none;
+}
+.chip button:hover{background:rgba(128,160,171,.08)}
+.chip .load-btn{font-weight:700}
+.chip .del-btn{padding-left:8px;padding-right:12px;color:var(--muted);font-size:1.1rem}
+.empty-note{
+  color:var(--muted);
+  font-size:14px;
+}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em}
+
+@media (max-width: 760px){
+  main{padding:20px 14px 44px}
+  .controls{grid-template-columns:1fr 1fr}
+  .hero{padding:22px 16px 18px}
+  .summary{grid-template-columns:1fr}
+  .row{grid-template-columns:1fr}
+  .row strong{padding-left:4px}
+}
+
+@media (max-width: 520px){
+  .controls{grid-template-columns:1fr}
+  .field:nth-child(4) .field-box{display:block}
+  .section{padding:18px 14px}
+  .tot{padding:16px 14px}
+  .bar{grid-template-columns:1fr}
+  .bar span{grid-row:2}
+}
 </style>
 </head>
 <body>
 <main>
-<h1>Cost of living, side by side</h1>
-<p class="lead">Pick two cities to compare typical monthly costs for one person, then switch currency.</p>
+  <header class="hero">
+    <div class="badge">Live budget planner</div>
+    <h1>Cost of living, side by side</h1>
+    <p class="lead">Compare monthly costs between cities, switch currencies, and save the comparisons you care about most.</p>
 
-<div class="controls">
-  <label>City A <select id="cityA"></select></label>
-  <label>City B <select id="cityB"></select></label>
-  <label>Currency <select id="cur"></select></label>
-  <label>&nbsp;<button id="save">Save comparison</button></label>
-</div>
+    <div class="controls">
+      <div class="field">
+        <label for="cityA">City A</label>
+        <select id="cityA"></select>
+      </div>
+      <div class="field">
+        <label for="cityB">City B</label>
+        <select id="cityB"></select>
+      </div>
+      <div class="field">
+        <label for="cur">Currency</label>
+        <select id="cur"></select>
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <button id="save">Save comparison</button>
+      </div>
+    </div>
+  </header>
 
-<div class="totals">
-  <div class="tot a"><span id="nameA"></span><b id="totA"></b></div>
-  <div class="tot b"><span id="nameB"></span><b id="totB"></b></div>
-</div>
-<div id="verdict" role="status"></div>
+  <section class="section">
+    <div class="summary">
+      <div class="tot a">
+        <div class="label" id="nameA">City A</div>
+        <b id="totA">$0</b>
+      </div>
+      <div class="tot b">
+        <div class="label" id="nameB">City B</div>
+        <b id="totB">$0</b>
+      </div>
+    </div>
+    <div id="verdict" role="status">Choose two different cities to compare.</div>
+  </section>
 
-<h2>Monthly costs by category</h2>
-<div class="card" id="rows"></div>
+  <section class="section">
+    <h2>Monthly costs by category</h2>
+    <div class="card" id="rows"></div>
+  </section>
 
-<h2>Exchange rate trend, last 12 months</h2>
-<div class="card"><div id="trend"></div><div class="note" id="trendNote"></div></div>
+  <section class="section">
+    <h2>Exchange rate trend</h2>
+    <div class="card">
+      <div id="trend"></div>
+      <div class="note" id="trendNote">Choose a currency to see how the value has changed over the last 12 months.</div>
+    </div>
+  </section>
 
-<h2>Saved comparisons</h2>
-<div class="saved" id="saved"></div>
-<p class="note">City costs are illustrative sample figures in USD stored in <code>CITIES</code> below. Replace them with a real source (for example, Numbeo's paid API) through the <code>loadCityData()</code> function. Exchange rates come live from the free Frankfurter API (ECB data).</p>
+  <section class="section">
+    <h2>Saved comparisons</h2>
+    <div class="saved-wrap" id="saved"></div>
+    <p class="note">City costs are illustrative sample figures in USD stored in <code>CITIES</code>. Replace them later with a real API or scraped dataset.</p>
+  </section>
 </main>
 
 <script>
 // ---- Data layer: swap this for a real cost-of-living API ----
 const CATS = [["rent","Rent"],["food","Food"],["transport","Transport"],["utilities","Utilities"],["fun","Entertainment"]];
-const CITIES = { // illustrative monthly USD, one person, 1-bed apartment in the centre
+const CITIES = {
   "Stockholm":{rent:1450,food:520,transport:85,utilities:130,fun:240},
   "Berlin":{rent:1300,food:430,transport:90,utilities:260,fun:220},
   "London":{rent:2700,food:560,transport:200,utilities:210,fun:300},
@@ -82,77 +389,128 @@ const CITIES = { // illustrative monthly USD, one person, 1-bed apartment in the
   "Toronto":{rent:2300,food:520,transport:115,utilities:150,fun:260},
   "Sydney":{rent:2600,food:600,transport:140,utilities:170,fun:280}
 };
-async function loadCityData(){ return CITIES; } // later: fetch from your API or a proxy
+async function loadCityData(){ return CITIES; }
 
-// ---- Currency layer ----
 const API = "https://api.frankfurter.dev/v1";
 let rates = {USD:1};
 async function loadRates(){
-  try{ const r = await fetch(`${API}/latest?base=USD`); const d = await r.json(); rates = {USD:1, ...d.rates}; }
-  catch(e){ document.getElementById("trendNote").textContent = "Live rates unavailable; showing USD."; }
+  try{
+    const r = await fetch(`${API}/latest?base=USD`);
+    const d = await r.json();
+    rates = {USD:1, ...d.rates};
+  } catch(e) {
+    document.getElementById("trendNote").textContent = "Live rates unavailable; showing USD.";
+  }
 }
 async function loadTrend(cur){
   const el = document.getElementById("trend"), note = document.getElementById("trendNote");
-  if(cur==="USD"){ el.innerHTML=""; note.textContent="Costs are stored in USD. Choose another currency to see its trend against the dollar."; return; }
+  if(cur === "USD") {
+    el.innerHTML = "";
+    note.textContent = "Costs are stored in USD. Choose another currency to see its trend against the dollar.";
+    return;
+  }
   try{
     const end = new Date(), start = new Date(); start.setFullYear(end.getFullYear()-1);
-    const f = d=>d.toISOString().slice(0,10);
+    const f = d => d.toISOString().slice(0,10);
     const r = await fetch(`${API}/${f(start)}..${f(end)}?base=USD&symbols=${cur}`);
     const d = await r.json();
-    const pts = Object.entries(d.rates).map(([k,v])=>[k,v[cur]]);
-    const vals = pts.map(p=>p[1]), min=Math.min(...vals), max=Math.max(...vals);
-    const W=700,H=220,P=30, x=i=>P+i*(W-2*P)/(pts.length-1), y=v=>H-P-(v-min)/((max-min)||1)*(H-2*P);
-    const path = pts.map((p,i)=>`${i?"L":"M"}${x(i).toFixed(1)},${y(p[1]).toFixed(1)}`).join(" ");
+    const pts = Object.entries(d.rates).map(([k,v]) => [k, v[cur]]);
+    const vals = pts.map(p => p[1]), min = Math.min(...vals), max = Math.max(...vals);
+    const W = 700, H = 220, P = 30;
+    const x = i => P + i * (W - 2 * P) / (pts.length - 1);
+    const y = v => H - P - (v - min) / ((max - min) || 1) * (H - 2 * P);
+    const path = pts.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p[1]).toFixed(1)}`).join(" ");
     el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="1 USD in ${cur} over 12 months">
-      <path d="${path}" fill="none" stroke="var(--a)" stroke-width="2.5"/>
-      <text x="${P}" y="16" fill="var(--mute)" font-size="12">high ${max.toFixed(2)}</text>
-      <text x="${P}" y="${H-6}" fill="var(--mute)" font-size="12">low ${min.toFixed(2)}</text></svg>`;
-    note.textContent = `1 USD in ${cur}, ${pts[0][0]} to ${pts[pts.length-1][0]}.`;
-  }catch(e){ el.innerHTML=""; note.textContent="Trend data could not be loaded."; }
+      <path d="${path}" fill="none" stroke="var(--a)" stroke-width="2.8"/>
+      <text x="${P}" y="16" fill="var(--muted)" font-size="12">high ${max.toFixed(2)}</text>
+      <text x="${P}" y="${H-6}" fill="var(--muted)" font-size="12">low ${min.toFixed(2)}</text>
+    </svg>`;
+    note.textContent = `1 USD in ${cur}, ${pts[0][0]} to ${pts[pts.length - 1][0]}.`;
+  } catch(e) {
+    el.innerHTML = "";
+    note.textContent = "Trend data could not be loaded.";
+  }
 }
 
-// ---- UI ----
-const $ = id=>document.getElementById(id);
+const $ = id => document.getElementById(id);
 let data = {};
-const fmt = (v,cur)=>new Intl.NumberFormat(undefined,{style:"currency",currency:cur,maximumFractionDigits:0}).format(v);
-const total = c=>CATS.reduce((s,[k])=>s+data[c][k],0);
+const fmt = (v, cur) => new Intl.NumberFormat(undefined,{style:"currency",currency:cur,maximumFractionDigits:0}).format(v);
+const total = c => CATS.reduce((s,[k]) => s + data[c][k], 0);
 
 function render(){
-  const a=$("cityA").value, b=$("cityB").value, cur=$("cur").value, r=rates[cur]||1;
-  $("nameA").textContent=a; $("nameB").textContent=b;
-  const ta=total(a)*r, tb=total(b)*r;
-  $("totA").textContent=fmt(ta,cur); $("totB").textContent=fmt(tb,cur);
-  if(a===b) $("verdict").textContent="Choose two different cities to compare.";
-  else{ const cheaper = ta<tb?a:b, pct = Math.abs(ta-tb)/Math.max(ta,tb)*100;
-    $("verdict").textContent=`${cheaper} is about ${pct.toFixed(0)}% cheaper per month.`; }
-  const max = Math.max(...CATS.map(([k])=>Math.max(data[a][k],data[b][k])))*r;
-  $("rows").innerHTML = CATS.map(([k,label])=>{
-    const va=data[a][k]*r, vb=data[b][k]*r;
-    return `<div class="row"><strong>${label}</strong><div>
-      <div class="bar a"><i style="width:${va/max*70}%"></i>${fmt(va,cur)}</div>
-      <div class="bar b"><i style="width:${vb/max*70}%"></i>${fmt(vb,cur)}</div></div></div>`;}).join("");
+  const a = $("cityA").value, b = $("cityB").value, cur = $("cur").value, r = rates[cur] || 1;
+  $("nameA").textContent = a;
+  $("nameB").textContent = b;
+
+  const ta = total(a) * r, tb = total(b) * r;
+  $("totA").textContent = fmt(ta, cur);
+  $("totB").textContent = fmt(tb, cur);
+
+  if(a === b){
+    $("verdict").textContent = "Choose two different cities to compare.";
+  } else {
+    const cheaper = ta < tb ? a : b;
+    const pct = Math.abs(ta - tb) / Math.max(ta, tb) * 100;
+    $("verdict").textContent = `${cheaper} is about ${pct.toFixed(0)}% cheaper per month.`;
+  }
+
+  const max = Math.max(...CATS.map(([k]) => Math.max(data[a][k], data[b][k]))) * r;
+  $("rows").innerHTML = CATS.map(([k,label]) => {
+    const va = data[a][k] * r, vb = data[b][k] * r;
+    return `<div class="row">
+      <strong>${label}</strong>
+      <div class="bars">
+        <div class="bar a">
+          <div class="bar-track"><i style="width:${(va / max) * 100}%"></i></div>
+          <span>${fmt(va,cur)}</span>
+        </div>
+        <div class="bar b">
+          <div class="bar-track"><i style="width:${(vb / max) * 100}%"></i></div>
+          <span>${fmt(vb,cur)}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+
   renderSaved();
 }
 
-// ---- Saved comparisons: browser storage only ----
-const KEY="col-saved";
-function getSaved(){ try{ return JSON.parse(localStorage.getItem(KEY))||[]; }catch(e){ return []; } }
-function setSaved(list){ try{ localStorage.setItem(KEY,JSON.stringify(list)); }catch(e){} }
-function renderSaved(){
-  const list=getSaved();
-  $("saved").innerHTML = list.length ? list.map((s,i)=>`<div class="chip">
-    <button data-load="${i}">${s.a} vs ${s.b} (${s.cur})</button>
-    <button data-del="${i}" aria-label="Delete saved comparison">&times;</button></div>`).join("")
-    : '<span class="note">Nothing saved yet.</span>';
+const KEY = "col-saved";
+function getSaved(){
+  try{ return JSON.parse(localStorage.getItem(KEY)) || []; } catch(e){ return []; }
 }
-$("saved").addEventListener("click",e=>{
-  const list=getSaved(), l=e.target.dataset.load, d=e.target.dataset.del;
-  if(l!==undefined){ const s=list[l]; $("cityA").value=s.a; $("cityB").value=s.b; $("cur").value=s.cur; render(); loadTrend(s.cur); }
-  if(d!==undefined){ list.splice(d,1); setSaved(list); renderSaved(); }
+function setSaved(list){
+  try{ localStorage.setItem(KEY, JSON.stringify(list)); } catch(e){}
+}
+function renderSaved(){
+  const list = getSaved();
+  $("saved").innerHTML = list.length
+    ? list.map((s,i) => `<div class="chip"><button class="load-btn" data-load="${i}">${s.a} vs ${s.b} (${s.cur})</button><button class="del-btn" data-del="${i}" aria-label="Delete saved comparison">×</button></div>`).join("")
+    : '<span class="empty-note">Nothing saved yet.</span>';
+}
+$("saved").addEventListener("click", e => {
+  const list = getSaved(), l = e.target.dataset.load, d = e.target.dataset.del;
+  if(l !== undefined){
+    const s = list[l];
+    $("cityA").value = s.a;
+    $("cityB").value = s.b;
+    $("cur").value = s.cur;
+    render();
+    loadTrend(s.cur);
+  }
+  if(d !== undefined){
+    list.splice(d, 1);
+    setSaved(list);
+    renderSaved();
+  }
 });
-$("save").onclick=()=>{
-  const s={a:$("cityA").value,b:$("cityB").value,cur:$("cur").value}, list=getSaved();
-  if(!list.some(x=>x.a===s.a&&x.b===s.b&&x.cur===s.cur)){ list.push(s); setSaved(list); }
+$("save").onclick = () => {
+  const s = {a: $("cityA").value, b: $("cityB").value, cur: $("cur").value};
+  const list = getSaved();
+  if(!list.some(x => x.a === s.a && x.b === s.b && x.cur === s.cur)){
+    list.push(s);
+    setSaved(list);
+  }
   renderSaved();
 };
 
@@ -160,12 +518,13 @@ $("save").onclick=()=>{
   data = await loadCityData();
   await loadRates();
   const names = Object.keys(data);
-  for(const id of ["cityA","cityB"]) $(id).innerHTML = names.map(n=>`<option>${n}</option>`).join("");
+  for(const id of ["cityA","cityB"]) $(id).innerHTML = names.map(n => `<option>${n}</option>`).join("");
   $("cityB").value = names[3];
-  $("cur").innerHTML = Object.keys(rates).sort().map(c=>`<option ${c==="USD"?"selected":""}>${c}</option>`).join("");
-  for(const id of ["cityA","cityB"]) $(id).onchange=render;
-  $("cur").onchange=()=>{ render(); loadTrend($("cur").value); };
-  render(); loadTrend("USD");
+  $("cur").innerHTML = Object.keys(rates).sort().map(c => `<option ${c === "USD" ? "selected" : ""}>${c}</option>`).join("");
+  for(const id of ["cityA","cityB"]) $(id).onchange = render;
+  $("cur").onchange = () => { render(); loadTrend($("cur").value); };
+  render();
+  loadTrend("USD");
 })();
 </script>
 </body>
