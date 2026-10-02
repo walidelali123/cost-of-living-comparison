@@ -108,6 +108,84 @@ h1{
   color:var(--muted);
   font-weight:600;
 }
+.city-picker{
+  position:relative;
+}
+.city-input{
+  border-radius:14px;
+  border:1px solid var(--line);
+  background:var(--card);
+  color:var(--ink);
+  font:inherit;
+  min-height:48px;
+  padding:10px 14px;
+  width:100%;
+  box-shadow:0 1px 0 rgba(0,0,0,.02);
+  cursor:pointer;
+}
+.city-input::placeholder{color:var(--muted)}
+.city-input:focus{
+  outline:none;
+  border-color:var(--a);
+  box-shadow:0 0 0 2px var(--a-soft);
+}
+.city-dropdown{
+  position:absolute;
+  top:100%;
+  left:0;
+  right:0;
+  margin-top:6px;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
+  box-shadow:var(--shadow);
+  max-height:320px;
+  overflow-y:auto;
+  z-index:1000;
+  display:none;
+}
+.city-dropdown.open{display:block}
+.city-dropdown-section{
+  border-bottom:1px solid var(--line);
+}
+.city-dropdown-section:last-child{border-bottom:0}
+.city-section-label{
+  padding:8px 12px 6px;
+  font-size:11px;
+  font-weight:700;
+  color:var(--muted);
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  background:rgba(93,114,124,.04);
+}
+.city-option{
+  padding:10px 14px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  transition:background .12s ease;
+}
+.city-option:hover{background:rgba(14,122,122,.08)}
+.city-option.selected{
+  background:var(--a-soft);
+  color:var(--a);
+  font-weight:600;
+}
+.city-option-flag{
+  font-size:1.2rem;
+  min-width:20px;
+}
+.city-option-text{
+  flex:1;
+}
+.city-option-name{
+  font-weight:500;
+}
+.city-option-country{
+  font-size:12px;
+  color:var(--muted);
+}
 select,button{
   border-radius:14px;
   border:1px solid var(--line);
@@ -322,11 +400,11 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em}
     <div class="controls">
       <div class="field">
         <label for="cityA">City A</label>
-        <select id="cityA"></select>
+        <div class="city-picker" id="pickerA"></div>
       </div>
       <div class="field">
         <label for="cityB">City B</label>
-        <select id="cityB"></select>
+        <div class="city-picker" id="pickerB"></div>
       </div>
       <div class="field">
         <label for="cur">Currency</label>
@@ -375,30 +453,44 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.9em}
 
 <script>
 const CATS = [["rent","Rent"],["food","Food"],["transport","Transport"],["utilities","Utilities"],["fun","Entertainment"]];
-const CITIES = {
-  "Stockholm":{rent:1450,food:520,transport:85,utilities:130,fun:240},
-  "Berlin":{rent:1300,food:430,transport:90,utilities:260,fun:220},
-  "London":{rent:2700,food:560,transport:200,utilities:210,fun:300},
-  "New York":{rent:4100,food:700,transport:132,utilities:180,fun:350},
-  "Lisbon":{rent:1500,food:380,transport:50,utilities:120,fun:190},
-  "Tokyo":{rent:1250,food:450,transport:80,utilities:140,fun:210},
-  "Bangkok":{rent:600,food:260,transport:45,utilities:90,fun:130},
-  "Mexico City":{rent:900,food:300,transport:40,utilities:70,fun:140},
-  "Toronto":{rent:2300,food:520,transport:115,utilities:150,fun:260},
-  "Sydney":{rent:2600,food:600,transport:140,utilities:170,fun:280}
-};
-const CITY_SLUGS = {
-  "Stockholm":"stockholm",
-  "Berlin":"berlin",
-  "London":"london",
-  "New York":"new-york-city",
-  "Lisbon":"lisbon",
-  "Tokyo":"tokyo",
-  "Bangkok":"bangkok",
-  "Mexico City":"mexico-city",
-  "Toronto":"toronto",
-  "Sydney":"sydney"
-};
+
+const CITIES_WITH_REGIONS = [
+  {name:"Stockholm",region:"Europe",country:"Sweden",flag:"🇸🇪",rent:1450,food:520,transport:85,utilities:130,fun:240},
+  {name:"Berlin",region:"Europe",country:"Germany",flag:"🇩🇪",rent:1300,food:430,transport:90,utilities:260,fun:220},
+  {name:"London",region:"Europe",country:"United Kingdom",flag:"🇬🇧",rent:2700,food:560,transport:200,utilities:210,fun:300},
+  {name:"Lisbon",region:"Europe",country:"Portugal",flag:"🇵🇹",rent:1500,food:380,transport:50,utilities:120,fun:190},
+  {name:"Paris",region:"Europe",country:"France",flag:"🇫🇷",rent:1800,food:480,transport:70,utilities:140,fun:280},
+  {name:"Amsterdam",region:"Europe",country:"Netherlands",flag:"🇳🇱",rent:1900,food:520,transport:110,utilities:150,fun:260},
+  {name:"Barcelona",region:"Europe",country:"Spain",flag:"🇪🇸",rent:1400,food:420,transport:75,utilities:100,fun:200},
+  {name:"New York",region:"North America",country:"United States",flag:"🇺🇸",rent:4100,food:700,transport:132,utilities:180,fun:350},
+  {name:"Los Angeles",region:"North America",country:"United States",flag:"🇺🇸",rent:3200,food:650,transport:120,utilities:160,fun:320},
+  {name:"Toronto",region:"North America",country:"Canada",flag:"🇨🇦",rent:2300,food:520,transport:115,utilities:150,fun:260},
+  {name:"Mexico City",region:"North America",country:"Mexico",flag:"🇲🇽",rent:900,food:300,transport:40,utilities:70,fun:140},
+  {name:"Tokyo",region:"Asia",country:"Japan",flag:"🇯🇵",rent:1250,food:450,transport:80,utilities:140,fun:210},
+  {name:"Bangkok",region:"Asia",country:"Thailand",flag:"🇹🇭",rent:600,food:260,transport:45,utilities:90,fun:130},
+  {name:"Singapore",region:"Asia",country:"Singapore",flag:"🇸🇬",rent:2100,food:380,transport:120,utilities:110,fun:240},
+  {name:"Hong Kong",region:"Asia",country:"Hong Kong",flag:"🇭🇰",rent:2800,food:420,transport:145,utilities:100,fun:280},
+  {name:"Sydney",region:"Oceania",country:"Australia",flag:"🇦🇺",rent:2600,food:600,transport:140,utilities:170,fun:280},
+  {name:"Melbourne",region:"Oceania",country:"Australia",flag:"🇦🇺",rent:2400,food:580,transport:130,utilities:160,fun:260},
+  {name:"Dubai",region:"Middle East",country:"United Arab Emirates",flag:"🇦🇪",rent:2400,food:500,transport:100,utilities:120,fun:250},
+  {name:"Istanbul",region:"Europe/Asia",country:"Turkey",flag:"🇹🇷",rent:800,food:280,transport:35,utilities:60,fun:120},
+  {name:"São Paulo",region:"South America",country:"Brazil",flag:"🇧🇷",rent:1200,food:380,transport:55,utilities:100,fun:180},
+  {name:"Buenos Aires",region:"South America",country:"Argentina",flag:"🇦🇷",rent:1000,food:320,transport:45,utilities:90,fun:150},
+  {name:"Bangkok",region:"Asia",country:"Thailand",flag:"🇹🇭",rent:600,food:260,transport:45,utilities:90,fun:130},
+  {name:"Chiang Mai",region:"Asia",country:"Thailand",flag:"🇹🇭",rent:400,food:180,transport:25,utilities:60,fun:80},
+  {name:"Manila",region:"Asia",country:"Philippines",flag:"🇵🇭",rent:500,food:220,transport:30,utilities:70,fun:100},
+  {name:"Mumbai",region:"Asia",country:"India",flag:"🇮🇳",rent:700,food:250,transport:40,utilities:80,fun:110},
+];
+
+const POPULAR_CITIES = ["New York","London","Tokyo","Sydney","Toronto"];
+
+const CITIES = {};
+const CITY_SLUGS = {};
+
+CITIES_WITH_REGIONS.forEach(city => {
+  CITIES[city.name] = {rent:city.rent,food:city.food,transport:city.transport,utilities:city.utilities,fun:city.fun};
+  CITY_SLUGS[city.name] = city.name.toLowerCase().replace(/\s+/g,"-");
+});
 
 function normalizeText(value = "") {
   return String(value).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
@@ -510,7 +602,7 @@ const fmt = (v, cur) => new Intl.NumberFormat(undefined,{style:"currency",curren
 const total = c => CATS.reduce((s,[k]) => s + data[c][k], 0);
 
 function render(){
-  const a = $("cityA").value, b = $("cityB").value, cur = $("cur").value, r = rates[cur] || 1;
+  const a = $("valueA").textContent, b = $("valueB").textContent, cur = $("cur").value, r = rates[cur] || 1;
   $("nameA").textContent = a;
   $("nameB").textContent = b;
 
@@ -564,8 +656,8 @@ $("saved").addEventListener("click", e => {
   const list = getSaved(), l = e.target.dataset.load, d = e.target.dataset.del;
   if(l !== undefined){
     const s = list[l];
-    $("cityA").value = s.a;
-    $("cityB").value = s.b;
+    setCity("A", s.a);
+    setCity("B", s.b);
     $("cur").value = s.cur;
     render();
     loadTrend(s.cur);
@@ -577,7 +669,8 @@ $("saved").addEventListener("click", e => {
   }
 });
 $("save").onclick = () => {
-  const s = {a: $("cityA").value, b: $("cityB").value, cur: $("cur").value};
+  const a = $("valueA").textContent, b = $("valueB").textContent, cur = $("cur").value;
+  const s = {a, b, cur};
   const list = getSaved();
   if(!list.some(x => x.a === s.a && x.b === s.b && x.cur === s.cur)){
     list.push(s);
@@ -586,18 +679,136 @@ $("save").onclick = () => {
   renderSaved();
 };
 
-(async function init(){
+function createCityPicker(id, defaultCity) {
+  const picker = document.getElementById(id);
+  const input = document.createElement("input");
+  input.type = "text";
+  input.className = "city-input";
+  input.placeholder = "Search cities...";
+  input.setAttribute("autocomplete", "off");
+
+  const dropdown = document.createElement("div");
+  dropdown.className = "city-dropdown";
+
+  picker.appendChild(input);
+  picker.appendChild(dropdown);
+
+  const region = id === "pickerA" ? "A" : "B";
+  const valueEl = document.createElement("span");
+  valueEl.id = `value${region}`;
+  valueEl.style.display = "none";
+  valueEl.textContent = defaultCity;
+  picker.appendChild(valueEl);
+
+  function filterCities(query) {
+    const normalized = normalizeText(query);
+    const grouped = {};
+
+    CITIES_WITH_REGIONS.forEach(city => {
+      if (normalizeText(city.name).includes(normalized) || normalizeText(city.country).includes(normalized)) {
+        if (!grouped[city.region]) grouped[city.region] = [];
+        grouped[city.region].push(city);
+      }
+    });
+
+    return grouped;
+  }
+
+  function renderDropdown(results) {
+    if (Object.keys(results).length === 0) {
+      dropdown.innerHTML = '<div style="padding:14px;color:var(--muted);text-align:center">No cities found</div>';
+      dropdown.classList.add("open");
+      return;
+    }
+
+    let html = "";
+    const regionOrder = ["Europe", "North America", "South America", "Asia", "Oceania", "Middle East", "Europe/Asia"];
+
+    regionOrder.forEach(r => {
+      if (results[r]) {
+        html += `<div class="city-dropdown-section">
+          <div class="city-section-label">${r}</div>
+          ${results[r].map(city => `
+            <div class="city-option" data-city="${city.name}">
+              <span class="city-option-flag">${city.flag}</span>
+              <div class="city-option-text">
+                <div class="city-option-name">${city.name}</div>
+                <div class="city-option-country">${city.country}</div>
+              </div>
+            </div>
+          `).join("")}
+        </div>`;
+      }
+    });
+
+    dropdown.innerHTML = html;
+    dropdown.classList.add("open");
+
+    dropdown.querySelectorAll(".city-option").forEach(el => {
+      el.addEventListener("click", () => {
+        const city = el.dataset.city;
+        setCity(region, city);
+      });
+    });
+  }
+
+  function setCity(r, city) {
+    input.value = city;
+    document.getElementById(`value${r}`).textContent = city;
+    dropdown.classList.remove("open");
+    render();
+  }
+
+  input.addEventListener("focus", () => {
+    if (input.value === "") {
+      const grouped = {};
+      POPULAR_CITIES.forEach(city => {
+        const cityData = CITIES_WITH_REGIONS.find(c => c.name === city);
+        if (cityData) {
+          if (!grouped[cityData.region]) grouped[cityData.region] = [];
+          grouped[cityData.region].push(cityData);
+        }
+      });
+      renderDropdown(grouped);
+    }
+  });
+
+  input.addEventListener("input", (e) => {
+    if (e.target.value === "") {
+      input.focus();
+    } else {
+      const results = filterCities(e.target.value);
+      renderDropdown(results);
+    }
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!picker.contains(e.target)) {
+      dropdown.classList.remove("open");
+    }
+  });
+}
+
+async function init(){
   data = await loadCityData();
   await loadRates();
-  const names = Object.keys(data);
-  for(const id of ["cityA","cityB"]) $(id).innerHTML = names.map(n => `<option>${n}</option>`).join("");
-  $("cityB").value = names[3];
+
+  createCityPicker("pickerA", POPULAR_CITIES[0]);
+  createCityPicker("pickerB", POPULAR_CITIES[1]);
+
   $("cur").innerHTML = Object.keys(rates).sort().map(c => `<option ${c === "USD" ? "selected" : ""}>${c}</option>`).join("");
-  for(const id of ["cityA","cityB"]) $(id).onchange = render;
   $("cur").onchange = () => { render(); loadTrend($("cur").value); };
+
   render();
   loadTrend("USD");
-})();
+}
+
+init();
+
+function setCity(r, city) {
+  document.getElementById(`value${r}`).textContent = city;
+  render();
+}
 </script>
 </body>
 </html>
