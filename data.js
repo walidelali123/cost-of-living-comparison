@@ -41,91 +41,20 @@ function normalizeText(value = "") {
   return String(value).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
-// Extract price from Teleport API response based on category keywords
-function pickCostValue(costs, matches) {
-  if (!Array.isArray(costs)) return null;
-  const target = matches.map(normalizeText);
-  for (const item of costs) {
-    const text = normalizeText(item.item || item.name || item.label || item.category || item.title || "");
-    const score = item.average_price ?? item.cost ?? item.price ?? item.value ?? item.amount ?? null;
-    if (!text || score === null || score === undefined) continue;
-    const matched = target.some(term => text.includes(term) || term.includes(text));
-    if (matched) return Number(score);
-  }
-  return null;
-}
-
-// Convert Teleport API response to our cost format
-function normalizeTeleportCity(payload, cityName) {
-  if (!payload || typeof payload !== "object") return null;
-
-  const localFallback = LOCAL_CITIES.find(c => c.name === cityName);
-  const fallback = localFallback
-    ? { rent: localFallback.rent, food: localFallback.food, transport: localFallback.transport, utilities: localFallback.utilities, fun: localFallback.fun }
-    : { rent: 0, food: 0, transport: 0, utilities: 0, fun: 0 };
-
-  const costs = Array.isArray(payload.costs) ? payload.costs : [];
-  const categoryMap = {
-    rent: ["rent", "apartment", "housing"],
-    food: ["groceries", "food", "restaurant"],
-    transport: ["transport", "transportation", "public transport"],
-    utilities: ["utilities", "electricity", "internet", "water"],
-    fun: ["entertainment", "recreation", "leisure", "nightlife"]
-  };
-
-  const result = { ...fallback };
-  for (const [key, words] of Object.entries(categoryMap)) {
-    const valueFound = pickCostValue(costs, words);
-    if (valueFound != null && valueFound > 0) result[key] = valueFound;
-  }
-
-  const hasAnyValue = Object.values(result).some(v => Number(v) > 0);
-  return hasAnyValue ? result : null;
-}
-
-// Fetch city cost data from Teleport API
-async function fetchTeleportCityData(cityName) {
-  const city = LOCAL_CITIES.find(c => c.name === cityName);
-  if (!city) return null;
-
-  const slug = cityName.toLowerCase().replace(/\s+/g, "-");
-
-  try {
-    const response = await fetch(`https://api.teleport.org/api/urban_areas/slug:${slug}/cost_of_living/`);
-    if (!response.ok) return null;
-    const payload = await response.json();
-    const normalized = normalizeTeleportCity(payload, cityName);
-    return normalized ? { ...normalized, source: "Teleport API", date: new Date().toISOString().split("T")[0] } : null;
-  } catch (error) {
-    // Network error or API unavailable
-    return null;
-  }
-}
-
-// Load all city data: try live API, fall back to local data
+// Load all city data: use local data only
 async function loadAllCityData() {
-  const cityEntries = await Promise.all(
-    LOCAL_CITIES.map(async (city) => {
-      const liveData = await fetchTeleportCityData(city.name);
-      if (liveData) {
-        return [city.name, liveData];
-      } else {
-        // Fall back to local data
-        return [
-          city.name,
-          {
-            rent: city.rent,
-            food: city.food,
-            transport: city.transport,
-            utilities: city.utilities,
-            fun: city.fun,
-            source: "Local data",
-            date: "Always available"
-          }
-        ];
-      }
-    })
-  );
+  const cityEntries = LOCAL_CITIES.map((city) => [
+    city.name,
+    {
+      rent: city.rent,
+      food: city.food,
+      transport: city.transport,
+      utilities: city.utilities,
+      fun: city.fun,
+      source: "Local dataset",
+      date: "Always current"
+    }
+  ]);
 
   return Object.fromEntries(cityEntries);
 }
@@ -160,7 +89,7 @@ function getPopularCities() {
   return grouped;
 }
 
-// Exchange rates from Frankfurter API
+// Exchange rates from Frankfurter API (CORS enabled)
 const API_FRANKFURTER = "https://api.frankfurter.dev/v1";
 let cachedRates = { USD: 1 };
 
