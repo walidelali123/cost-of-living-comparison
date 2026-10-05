@@ -9,32 +9,7 @@ const CATEGORIES = [
   ["fun", "Entertainment"]
 ];
 
-const LOCAL_CITIES = [
-  { name: "Stockholm", region: "Europe", country: "Sweden", flag: "🇸🇪", rent: 1450, food: 520, transport: 85, utilities: 130, fun: 240 },
-  { name: "Berlin", region: "Europe", country: "Germany", flag: "🇩🇪", rent: 1300, food: 430, transport: 90, utilities: 260, fun: 220 },
-  { name: "London", region: "Europe", country: "United Kingdom", flag: "🇬🇧", rent: 2700, food: 560, transport: 200, utilities: 210, fun: 300 },
-  { name: "Lisbon", region: "Europe", country: "Portugal", flag: "🇵🇹", rent: 1500, food: 380, transport: 50, utilities: 120, fun: 190 },
-  { name: "Paris", region: "Europe", country: "France", flag: "🇫🇷", rent: 1800, food: 480, transport: 70, utilities: 140, fun: 280 },
-  { name: "Amsterdam", region: "Europe", country: "Netherlands", flag: "🇳🇱", rent: 1900, food: 520, transport: 110, utilities: 150, fun: 260 },
-  { name: "Barcelona", region: "Europe", country: "Spain", flag: "🇪🇸", rent: 1400, food: 420, transport: 75, utilities: 100, fun: 200 },
-  { name: "New York", region: "North America", country: "United States", flag: "🇺🇸", rent: 4100, food: 700, transport: 132, utilities: 180, fun: 350 },
-  { name: "Los Angeles", region: "North America", country: "United States", flag: "🇺🇸", rent: 3200, food: 650, transport: 120, utilities: 160, fun: 320 },
-  { name: "Toronto", region: "North America", country: "Canada", flag: "🇨🇦", rent: 2300, food: 520, transport: 115, utilities: 150, fun: 260 },
-  { name: "Mexico City", region: "North America", country: "Mexico", flag: "🇲🇽", rent: 900, food: 300, transport: 40, utilities: 70, fun: 140 },
-  { name: "Tokyo", region: "Asia", country: "Japan", flag: "🇯🇵", rent: 1250, food: 450, transport: 80, utilities: 140, fun: 210 },
-  { name: "Bangkok", region: "Asia", country: "Thailand", flag: "🇹🇭", rent: 600, food: 260, transport: 45, utilities: 90, fun: 130 },
-  { name: "Singapore", region: "Asia", country: "Singapore", flag: "🇸🇬", rent: 2100, food: 380, transport: 120, utilities: 110, fun: 240 },
-  { name: "Hong Kong", region: "Asia", country: "Hong Kong", flag: "🇭🇰", rent: 2800, food: 420, transport: 145, utilities: 100, fun: 280 },
-  { name: "Sydney", region: "Oceania", country: "Australia", flag: "🇦🇺", rent: 2600, food: 600, transport: 140, utilities: 170, fun: 280 },
-  { name: "Melbourne", region: "Oceania", country: "Australia", flag: "🇦🇺", rent: 2400, food: 580, transport: 130, utilities: 160, fun: 260 },
-  { name: "Dubai", region: "Middle East", country: "United Arab Emirates", flag: "🇦🇪", rent: 2400, food: 500, transport: 100, utilities: 120, fun: 250 },
-  { name: "Istanbul", region: "Europe/Asia", country: "Turkey", flag: "🇹🇷", rent: 800, food: 280, transport: 35, utilities: 60, fun: 120 },
-  { name: "São Paulo", region: "South America", country: "Brazil", flag: "🇧🇷", rent: 1200, food: 380, transport: 55, utilities: 100, fun: 180 },
-  { name: "Buenos Aires", region: "South America", country: "Argentina", flag: "🇦🇷", rent: 1000, food: 320, transport: 45, utilities: 90, fun: 150 },
-  { name: "Chiang Mai", region: "Asia", country: "Thailand", flag: "🇹🇭", rent: 400, food: 180, transport: 25, utilities: 60, fun: 80 },
-  { name: "Manila", region: "Asia", country: "Philippines", flag: "🇵🇭", rent: 500, food: 220, transport: 30, utilities: 70, fun: 100 },
-  { name: "Mumbai", region: "Asia", country: "India", flag: "🇮🇳", rent: 700, food: 250, transport: 40, utilities: 80, fun: 110 }
-];
+const LOCAL_CITIES = [];
 
 // Normalize text for searching (lowercase, remove special chars)
 function normalizeText(value = "") {
